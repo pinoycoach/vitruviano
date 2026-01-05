@@ -1,0 +1,7 @@
+{
+  "name": "Nexus 3.0: The Manifestor",
+  "description": "An intimate AI experience that manifests book characters into reality using the soul of technology.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
