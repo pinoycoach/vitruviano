@@ -8,7 +8,10 @@ import EconomyOverlay from './components/EconomyOverlay';
 import DramaticLoader from './components/DramaticLoader';
 import { BoyfriendProfile, TropeType, DirectorInput, UserWallet } from './types';
 import { generateBoyfriendProfile, generateFantasyImage, generateDirectorProfile, generateCoreProfile, enrichBoyfriendProfile, generateManifestProfile } from './services/geminiService';
-
+// NEW: Superuser imports
+import { isSuperuser } from './config/superuser';
+import { isFeatureEnabled } from './config/features';
+import SuperuserPanel from './components/SuperuserPanel';
 const App: React.FC = () => {
   const [view, setView] = useState<'menu' | 'casting' | 'director' | 'manifestor' | 'fantasy'>('menu');
   const [profile, setProfile] = useState<BoyfriendProfile | null>(null);
@@ -16,7 +19,27 @@ const App: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingContext, setLoadingContext] = useState<{ trope: string, vibe: string } | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
-
+// NEW: Superuser state
+  const [isSU, setIsSU] = useState(false);
+  const [showPanel, setShowPanel] = useState(false);
+  useEffect(() => {
+    // Check if superuser
+    setIsSU(isSuperuser());
+    
+    if (isSuperuser()) {
+      console.log('🔐 Superuser mode active! Press Ctrl+Shift+S to open panel');
+      
+      // Keyboard shortcut
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+          setShowPanel(prev => !prev);
+        }
+      };
+      
+      window.addEventListener('keydown', handleKey);
+      return () => window.removeEventListener('keydown', handleKey);
+    }
+  }, []);
   const [wallet, setWallet] = useState<UserWallet>({
       coins: 100,
       streakDays: 1,
@@ -156,6 +179,20 @@ const App: React.FC = () => {
                     />
                 )}
             </div>
+            {/* NEW: Superuser button */}
+      {isSU && (
+        <button
+          onClick={() => setShowPanel(!showPanel)}
+          className="fixed top-4 right-4 z-50 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg transition-colors"
+        >
+          🔐 SUPERUSER
+        </button>
+      )}
+      
+      {/* NEW: Superuser panel */}
+      {isSU && showPanel && (
+        <SuperuserPanel onClose={() => setShowPanel(false)} />
+      )}
         </main>
     </div>
   );

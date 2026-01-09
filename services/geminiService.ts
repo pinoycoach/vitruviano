@@ -106,20 +106,21 @@ export const enrichBoyfriendProfile = async (currentProfile: BoyfriendProfile): 
 
 export const generateFantasyImage = async (profile: BoyfriendProfile): Promise<string> => {
     const ai = getAiInstance();
-    // REFINED PROMPT: Forbidding glows/supernatural effects, enforcing high-end photography.
     const prompt = `Cinematic film still, 35mm photography. SUBJECT: ${profile.name}, ${profile.trope}. ${profile.visualDescription}. ${profile.atmosphere}. Realistic human skin textures, deep realistic eyes, natural dramatic shadows, Wong Kar-wai color palette. ABSOLUTELY NO glowing eyes, NO supernatural effects, NO laser beams. Professional lighting.`;
 
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-image-preview',
-            contents: { parts: [{ text: prompt }] },
-            config: { imageConfig: { aspectRatio: "3:4", imageSize: "1K" } }
+            contents: { parts: [{ text: prompt }] }
         });
         const base64 = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!base64) throw new Error("No image data in Pro response");
         return `data:image/png;base64,${base64}`;
     } catch (e) {
-        const res2 = await ai.models.generateContent({ model: 'gemini-2.5-flash-image', contents: { parts: [{ text: prompt }] } });
+        const res2 = await ai.models.generateContent({ 
+            model: 'gemini-2.5-flash-image', 
+            contents: { parts: [{ text: prompt }] } 
+        });
         const b64 = res2.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         return `data:image/png;base64,${b64}`;
     }

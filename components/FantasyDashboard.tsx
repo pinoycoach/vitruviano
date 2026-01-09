@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { BoyfriendProfile, MicroBeat, UserWallet, ECONOMY_COSTS } from '../types';
 import { playRawAudio, generateVoiceResponse, generateIntimatesImage, connectLiveCall } from '../services/geminiService';
+import { generateWhisperExperience, trackWhisperEngagement } from '../services/whisperBackService';
 import ChatInterface from './ChatInterface';
 
 interface FantasyDashboardProps {
@@ -30,6 +30,12 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({
     const [isLiveCalling, setIsLiveCalling] = useState(false);
     const liveSessionRef = useRef<any>(null);
 
+    // NEW: WhisperBack state
+    const [isGeneratingWhisper, setIsGeneratingWhisper] = useState(false);
+    const [whisperAudio, setWhisperAudio] = useState<HTMLAudioElement | null>(null);
+    const [isPlayingWhisper, setIsPlayingWhisper] = useState(false);
+    const whisperStartTimeRef = useRef<number>(0);
+
     useEffect(() => {
         if (!profile.microBeats || profile.microBeats.length === 0) return;
         setBeatIndex(0);
@@ -49,7 +55,6 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({
             setIsVaultUnlocked(true);
             setIsPrivateImageLoading(true);
             try {
-                // Now targeting the spicy boxers/briefs aesthetic
                 const img = await generateIntimatesImage(profile, imageUrl || undefined);
                 setPrivateImageUrl(img);
             } catch (e) { console.error(e); } 
@@ -84,6 +89,64 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({
         }
     };
 
+    // NEW: WhisperBack handler
+    const handleWhisper = async () => {
+        if (isGeneratingWhisper || isPlayingWhisper) return;
+        
+        setIsGeneratingWhisper(true);
+        whisperStartTimeRef.current = Date.now();
+        
+        try {
+            console.log('🎧 Generating whisper experience...');
+            
+            const experience = await generateWhisperExperience(
+                profile.name,
+                profile.trope,
+                profile.visualDescription
+            );
+            
+            console.log('✅ Whisper ready:', experience);
+            
+            // Create and play audio
+            const audio = new Audio(experience.audioUrl);
+            setWhisperAudio(audio);
+            
+            audio.onplay = () => {
+                setIsPlayingWhisper(true);
+                console.log('▶️ Whisper playing');
+            };
+            
+            audio.onended = () => {
+                const duration = Date.now() - whisperStartTimeRef.current;
+                setIsPlayingWhisper(false);
+                
+                trackWhisperEngagement({
+                    characterName: experience.characterName,
+                    trope: experience.trope,
+                    listened: true,
+                    listenDuration: duration,
+                    replayed: false,
+                    timestamp: Date.now()
+                });
+                
+                console.log('✅ Whisper complete');
+            };
+            
+            audio.onerror = () => {
+                setIsPlayingWhisper(false);
+                console.error('❌ Whisper playback error');
+            };
+            
+            await audio.play();
+            
+        } catch (error) {
+            console.error('❌ Whisper generation failed:', error);
+            alert('Could not generate whisper. Check console for details.');
+        } finally {
+            setIsGeneratingWhisper(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black animate-slow-fade flex items-center justify-center overflow-hidden">
             
@@ -99,20 +162,24 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({
                     </div>
                 )}
                 {/* Visual Heartbeat Effect */}
-                {isLiveCalling && <div className="absolute inset-0 bg-davinci-red/5 animate-pulse pointer-events-none"></div>}
+                {(isLiveCalling || isPlayingWhisper) && <div className="absolute inset-0 bg-davinci-red/5 animate-pulse pointer-events-none"></div>}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 opacity-90 pointer-events-none"></div>
             </div>
 
-            {/* 2. THE STORY OVERLAYS - Subtitles style, no technical labels */}
+            {/* 2. THE STORY OVERLAYS */}
             <div className="absolute bottom-[20%] left-0 w-full px-12 text-center z-10">
                 {isLiveCalling ? (
                     <div className="animate-slow-fade">
                         <p className="text-davinci-red tracking-[0.5em] uppercase text-[10px] mb-4 animate-pulse">Call In Progress</p>
                         <p className="text-2xl font-light italic text-white cinematic-shadow">"I can hear your breath..."</p>
                     </div>
+                ) : isPlayingWhisper ? (
+                    <div className="animate-slow-fade">
+                        <p className="text-davinci-gold tracking-[0.5em] uppercase text-[10px] mb-4 animate-pulse">Whispering...</p>
+                        <p className="text-2xl font-light italic text-white cinematic-shadow">"Close your eyes and listen..."</p>
+                    </div>
                 ) : activeBeat && (
                     <div className="animate-slow-fade" key={beatIndex}>
-                         {/* Subtle shimmering indicator instead of 'BEAT' */}
                          <div className="w-1 h-1 bg-davinci-gold/40 rounded-full mx-auto mb-6 animate-pulse"></div>
                          <p className="text-3xl font-light italic text-white cinematic-shadow leading-relaxed max-w-2xl mx-auto">
                             "{activeBeat.text}"
@@ -155,7 +222,35 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({
                         )}
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-wrap justify-end">
+                        {/* NEW: Whisper Button */}
+                        <button 
+                            onClick={handleWhisper}
+                            disabled={isGeneratingWhisper || isPlayingWhisper}
+                            className={`px-8 py-5 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center gap-3 ${
+                                isPlayingWhisper 
+                                    ? 'bg-purple-600 text-white animate-pulse' 
+                                    : isGeneratingWhisper
+                                    ? 'bg-purple-900 text-white opacity-50 cursor-wait'
+                                    : 'bg-transparent border border-purple-400 text-purple-300 hover:bg-purple-500 hover:text-white'
+                            }`}
+                        >
+                            {isGeneratingWhisper ? (
+                                <>
+                                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                                    Generating...
+                                </>
+                            ) : isPlayingWhisper ? (
+                                <>
+                                    🎧 Listening...
+                                </>
+                            ) : (
+                                <>
+                                    🎧 Hear Him Whisper
+                                </>
+                            )}
+                        </button>
+
                         <button 
                             onClick={handleStartLiveCall} 
                             className={`px-8 py-5 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center gap-3 ${isLiveCalling ? 'bg-davinci-red text-white animate-pulse' : 'bg-transparent border border-white/20 text-white hover:bg-white/10'}`}
@@ -171,6 +266,7 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({
                                 </>
                             ) : 'Establish Connection'}
                         </button>
+                        
                         <button onClick={() => setChatOpen(true)} className="bg-white text-black px-12 py-5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-davinci-gold transition-colors">Speak to Him</button>
                     </div>
                 </div>
