@@ -36,9 +36,10 @@ Every interaction captures preference signals. We're building the world's first 
 ## Technical Architecture
 
 **Frontend:** React + TypeScript + Vite  
-**AI:** Google Gemini 3 Flash (generation) + Gemini 3 Pro (analysis)  
-**Voice:** Gemini 2.5 Flash TTS with personality matching
-**Styling:** Tailwind CSS  
+**AI:** Google Gemini (text, images, TTS, Live voice); model names live in `config/models.ts`  
+**Voice:** Gemini TTS with personality matching, ElevenLabs for WhisperBack  
+**Backend:** Vercel serverless functions in `/api` (all API keys stay server-side)  
+**Styling:** Tailwind CSS v4  
 **Deployment:** Vercel
 
 **Core Innovation:**  
@@ -81,14 +82,17 @@ This becomes market intelligence for fashion brands and romance publishers.
 
 ```
 vitruviano/
-├── components/
-│   ├── ManifestorForm.tsx      # The Invocation interface
-│   ├── InputForm.tsx            # The Vision (Director Mode)
-│   ├── CastingDirector.tsx     # The Intimacy (Blind Date)
-│   ├── FantasyDashboard.tsx    # Results display
-│   └── ...
-├── services/
-│   └── geminiService.ts         # Gemini 3 integration
+├── api/                         # Vercel serverless functions (server-only, hold all keys)
+│   ├── _lib/                    # shared helpers (http, gemini, fal, superuser session, prompts)
+│   ├── whisper/                 # ElevenLabs script + voice
+│   └── *.ts                     # profile, image, tts, hook, chat, live-token, superuser, ...
+├── components/                  # React UI
+├── config/
+│   ├── models.ts                # every third-party model name, in one place
+│   └── superuser.ts             # client-side view of the server-verified superuser state
+├── services/                    # browser clients that call /api (no keys)
+├── tests/                       # Vitest suites
+├── docs/                        # design notes / plans
 ├── types.ts                     # TypeScript definitions
 ├── App.tsx                      # Main application
 └── index.html                   # Entry point
@@ -98,15 +102,20 @@ vitruviano/
 
 ## Run Locally
 
-**Prerequisites:** Node.js
+**Prerequisites:** Node.js 22+
 
 1. Install dependencies: `npm install`
-2. Set your Gemini API key in `.env.local`:
-   ```
-   VITE_GEMINI_API_KEY=your_key_here
-   ```
-3. Run the app: `npm run dev`
-4. Open: `http://localhost:5173`
+2. Copy `.env.example` to `.env.local` and fill in the server-only keys
+   (`GEMINI_API_KEY`, `ELEVENLABS_API_KEY`, `FAL_KEY`, `SUPERUSER_SECRET`).
+   Never prefix them with `VITE_`: that would bundle them into the public JavaScript.
+3. Run the app: `npm run dev` (also serves `/api/*` locally)
+4. Open: `http://localhost:3000`
+
+Other scripts: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`,
+and `npm run check` (all four). Press **Ctrl+Shift+S** in the app to open the
+superuser login (the secret is checked server-side).
+
+**Deploying on Vercel:** set the same environment variables in the project settings.
 
 ---
 
