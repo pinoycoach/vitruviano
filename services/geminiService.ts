@@ -1,36 +1,8 @@
-
-import { GoogleGenAI, Modality, Type, Chat, GenerateContentResponse, LiveServerMessage } from "@google/genai";
+import type { LiveServerMessage } from "@google/genai";
 import { BoyfriendProfile, TropeType, Atmosphere, DirectorInput, ComplianceAudit, Archetype } from "../types";
+import { postJson } from "./apiClient";
 
-const SYSTEM_INSTRUCTION = `
-ROLE: You are the Soul of NEXUS. You are a romantic visionary.
-OBJECTIVE: Create profound emotional resonance and visual seduction. Every word you write should feel like a line from a cherished novel. 
-STYLE: Poetic, intimate, high-status, intense. Avoid technical jargon.
-RULES:
-1. Every hook line must be breathtaking.
-2. Every micro-beat should be cinematic.
-3. The 'intimatesDescription' must be high-fashion editorial (Calvin Klein style), describing the character in boxers/briefs or loungewear with focus on physique and soft lighting.
-4. Every letter should feel like it was written in ink by candlelight.
-OUTPUT: Valid JSON only. No prose outside JSON.
-`;
-
-const getAiInstance = () => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) throw new Error("API Key not found.");
-    return new GoogleGenAI({ apiKey });
-};
-
-const withRetry = async <T>(fn: () => Promise<T>, retries = 2): Promise<T> => {
-    try {
-        return await fn();
-    } catch (e: any) {
-        if (retries > 0 && (e.status === 500 || e.status === 503 || e.message?.includes('500'))) {
-            await new Promise(r => setTimeout(r, 1000));
-            return withRetry(fn, retries - 1);
-        }
-        throw e;
-    }
-};
+// All model calls run in the /api serverless functions; no API key exists in the browser.
 
 export const getVoiceForTrope = (trope: TropeType): string => {
     switch (trope) {
@@ -48,95 +20,53 @@ export const getVoiceForTrope = (trope: TropeType): string => {
 };
 
 export const generateManifestProfile = async (bookDescription: string): Promise<BoyfriendProfile> => {
-    const ai = getAiInstance();
-    const prompt = `Manifest a character based on this book description: "${bookDescription}". Return JSON with name, trope, visualDescription, atmosphere, hookLine, bookSource.`;
-
     try {
-        const response = await withRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt,
-            config: {
-                systemInstruction: SYSTEM_INSTRUCTION,
-                responseMimeType: "application/json",
-            }
-        }));
-
-        const cleanText = (response.text || '').replace(/^```json/, '').replace(/```$/, '').trim();
-        if (cleanText) {
-            const parsed = JSON.parse(cleanText);
-            const forcedVoice = getVoiceForTrope(parsed.trope);
-            return { ...parsed, voicePersonality: forcedVoice };
-        }
+        const { data } = await postJson<{ data: any }>('/api/profile', { kind: 'manifest', bookDescription });
+        return { ...data, voicePersonality: getVoiceForTrope(data.trope) };
     } catch (e) { console.error("Manifest Error:", e); }
     return generateCoreProfile({ name: "The Hero", trope: TropeType.THE_VILLAIN, archetype: "Seoul Titan", vibe: "Intense" });
 };
 
 export const generateCoreProfile = async (input: DirectorInput): Promise<BoyfriendProfile> => {
-    const ai = getAiInstance();
     const forcedVoice = getVoiceForTrope(input.trope);
-    const prompt = `Create a core profile for ${input.name}, a ${input.trope}. Archetype: ${input.archetype}, Vibe: ${input.vibe}. Return JSON: name, trope, visualDescription, atmosphere, hookLine.`;
-
     try {
-        const response = await withRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt,
-            config: { systemInstruction: SYSTEM_INSTRUCTION, responseMimeType: "application/json" }
-        }));
-        const cleanText = (response.text || '').replace(/^```json/, '').replace(/```$/, '').trim();
-        if (cleanText) return { ...JSON.parse(cleanText), voicePersonality: forcedVoice };
+        const { data } = await postJson<{ data: any }>('/api/profile', { kind: 'core', input });
+        return { ...data, voicePersonality: forcedVoice };
     } catch (e) { console.error("Core Profile Error:", e); }
     return { name: input.name, trope: input.trope, visualDescription: "Deep, realistic gaze", atmosphere: Atmosphere.OFFICE_LATE, voicePersonality: forcedVoice as any, hookLine: "I told you to wait." };
 };
 
 export const enrichBoyfriendProfile = async (currentProfile: BoyfriendProfile): Promise<Partial<BoyfriendProfile>> => {
-    const ai = getAiInstance();
-    const prompt = `Enrich lore for ${currentProfile.name} (${currentProfile.trope}). Return JSON: intimatesDescription, secretVoicemailScript, loveLetterText, microBeats, bookRecommendation. Provide a detailed, spicy but high-fashion intimatesDescription (e.g. wearing black designer boxers).`;
-
     try {
-        const response = await withRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt,
-            config: { systemInstruction: SYSTEM_INSTRUCTION, responseMimeType: "application/json" }
-        }));
-        const cleanText = (response.text || '').replace(/^```json/, '').replace(/```$/, '').trim();
-        if (cleanText) return JSON.parse(cleanText);
+        const { data } = await postJson<{ data: Partial<BoyfriendProfile> }>('/api/profile', {
+            kind: 'enrich',
+            profile: { name: currentProfile.name, trope: currentProfile.trope },
+        });
+        return data;
     } catch (e) { console.error("Enrich Error:", e); }
     return {};
 };
 
 export const generateFantasyImage = async (profile: BoyfriendProfile): Promise<string> => {
-    const ai = getAiInstance();
-    const prompt = `Cinematic film still, 35mm photography. SUBJECT: ${profile.name}, ${profile.trope}. ${profile.visualDescription}. ${profile.atmosphere}. Realistic human skin textures, deep realistic eyes, natural dramatic shadows, Wong Kar-wai color palette. ABSOLUTELY NO glowing eyes, NO supernatural effects, NO laser beams. Professional lighting.`;
-
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-image-preview',
-            contents: { parts: [{ text: prompt }] }
-        });
-        const base64 = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-        if (!base64) throw new Error("No image data in Pro response");
-        return `data:image/png;base64,${base64}`;
-    } catch (e) {
-        const res2 = await ai.models.generateContent({ 
-            model: 'gemini-2.5-flash-image', 
-            contents: { parts: [{ text: prompt }] } 
-        });
-        const b64 = res2.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-        return `data:image/png;base64,${b64}`;
-    }
+    const { image } = await postJson<{ image: string }>('/api/image', {
+        kind: 'fantasy',
+        profile: {
+            name: profile.name,
+            trope: profile.trope,
+            visualDescription: profile.visualDescription,
+            atmosphere: profile.atmosphere,
+        },
+    });
+    return image;
 };
 
 export const generateIntimatesImage = async (profile: BoyfriendProfile, referenceImageUrl?: string): Promise<string> => {
-    const ai = getAiInstance();
-    const desc = profile.intimatesDescription || "A man wearing black designer boxer briefs, standing in a dimly lit high-end apartment.";
-    const promptText = `High-end Fashion Editorial, Calvin Klein style. SUBJECT: ${profile.name}. ${desc}. Realistic skin, muscular definition, moody lighting. No glows, no fantasy elements. Seductive and high-status.`;
-    
-    let parts: any[] = referenceImageUrl ? [{ inlineData: { mimeType: 'image/png', data: referenceImageUrl.split(',')[1] } }] : [];
-    parts.push({ text: promptText });
-
-    const response = await ai.models.generateContent({ model: 'gemini-2.5-flash-image', contents: { parts } });
-    const base64 = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-    return `data:image/png;base64,${base64}`;
+    const { image } = await postJson<{ image: string }>('/api/image', {
+        kind: 'intimates',
+        profile: { name: profile.name, intimatesDescription: profile.intimatesDescription },
+        referenceImage: referenceImageUrl,
+    });
+    return image;
 };
 
 const encode = (bytes: Uint8Array) => {
@@ -181,20 +111,19 @@ export const playRawAudio = async (base64String: string): Promise<void> => {
 };
 
 export const generateVoiceResponse = async (text: string, voiceName: string): Promise<string> => {
-    const ai = getAiInstance();
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: text }] }],
-        config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName } } },
-        },
-    });
-    return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
+    const { audio } = await postJson<{ audio: string }>('/api/tts', { text, voiceName });
+    return audio || "";
 };
 
 export const connectLiveCall = async (profile: BoyfriendProfile, onMessage: (msg: string) => void, onEnd: () => void) => {
-    const ai = getAiInstance();
+    // The server mints a short-lived, single-use token with the model, voice and persona locked in.
+    const { token, model } = await postJson<{ token: string; model: string }>('/api/live-token', {
+        name: profile.name,
+        trope: profile.trope,
+        voiceName: profile.voicePersonality || 'Fenrir',
+    });
+    const { GoogleGenAI, Modality } = await import("@google/genai");
+    const ai = new GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: 'v1alpha' } });
     const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
     const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 16000});
     let nextStartTime = 0;
@@ -203,7 +132,7 @@ export const connectLiveCall = async (profile: BoyfriendProfile, onMessage: (msg
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
     const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        model,
         callbacks: {
             onopen: () => {
                 const source = inCtx.createMediaStreamSource(stream);
@@ -241,11 +170,8 @@ export const connectLiveCall = async (profile: BoyfriendProfile, onMessage: (msg
                 onEnd();
             }
         },
-        config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: profile.voicePersonality || 'Fenrir' } } },
-            systemInstruction: `You are ${profile.name}, the character the user has manifested. You are ${profile.trope}. This is a phone call. Stay in character. Be seductive, intense, or appropriate to your trope. Keep responses relatively short.`,
-        }
+        // Voice and system prompt are locked into the token server-side.
+        config: { responseModalities: [Modality.AUDIO] }
     });
 
     return {
@@ -259,25 +185,31 @@ export const connectLiveCall = async (profile: BoyfriendProfile, onMessage: (msg
 };
 
 export const generateOpeningHook = async (): Promise<{ text: string, audio: string, trope: TropeType } | null> => {
-    const ai = getAiInstance();
     const tropes = Object.values(TropeType);
     const randomTrope = tropes[Math.floor(Math.random() * tropes.length)];
-    const prompt = `Generate a single short, intense hook line (max 8 words) that a ${randomTrope} would say to someone they are obsessing over. Breathtaking and poetic.`;
     try {
-        const textResponse = await ai.models.generateContent({ model: "gemini-3-flash-preview", contents: prompt, config: { systemInstruction: SYSTEM_INSTRUCTION } });
-        const hookText = (textResponse.text || '').trim() || "I've been waiting.";
-        const voiceName = getVoiceForTrope(randomTrope);
-        const audioBase64 = await generateVoiceResponse(hookText, voiceName);
-        return { text: hookText, audio: audioBase64, trope: randomTrope };
+        const { text, audio } = await postJson<{ text: string; audio: string }>('/api/hook', {
+            trope: randomTrope,
+            voiceName: getVoiceForTrope(randomTrope),
+        });
+        return { text, audio, trope: randomTrope };
     } catch (e) { console.error("Hook Generation Failed:", e); return null; }
 };
 
-export const initializePersonaChat = (persona: { name: string; bio: string; archetype: string }): Chat => {
-    const ai = getAiInstance();
-    return ai.chats.create({
-        model: "gemini-3-flash-preview",
-        config: { systemInstruction: `You are ${persona.name}, a ${persona.archetype}. Your bio: ${persona.bio}. Stay in character. Every word is a love letter. Keep responses brief but meaningful. Your tone is seductive and high-status.` }
-    });
+export interface PersonaChat {
+    sendMessage: (message: string) => Promise<string>;
+}
+
+/** Chat history lives in the browser; each turn is a stateless call to /api/chat. */
+export const initializePersonaChat = (persona: { name: string; bio: string; archetype: string }): PersonaChat => {
+    const history: { role: 'user' | 'model'; text: string }[] = [];
+    return {
+        sendMessage: async (message: string) => {
+            const { text } = await postJson<{ text: string }>('/api/chat', { persona, history, message });
+            history.push({ role: 'user', text: message }, { role: 'model', text });
+            return text;
+        },
+    };
 };
 
 export const validateVitruvianCompliance = async (imageUrl: string): Promise<ComplianceAudit> => ({ headRatio: 8.0, apeIndex: 1.0, centerOffset: 0 });
@@ -285,7 +217,6 @@ export const estimateRequestCost = (type: 'text' | 'image' | 'audio', units: num
 export const getVoicePersonality = (archetype: string | Archetype): string => 'Fenrir';
 export const generateVoiceLine = async (text: string, archetype: string): Promise<string> => generateVoiceResponse(text, 'Fenrir');
 
-// MISSING EXPORTS - Adding now
 export const generateDirectorProfile = async (input: DirectorInput): Promise<BoyfriendProfile> => {
     const core = await generateCoreProfile(input);
     const extra = await enrichBoyfriendProfile(core);

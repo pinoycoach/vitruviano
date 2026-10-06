@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { initializePersonaChat } from '../services/geminiService';
-import { GenerateContentResponse, Chat } from "@google/genai";
+import { initializePersonaChat, PersonaChat } from '../services/geminiService';
 
 interface ChatInterfaceProps {
     persona: {
@@ -22,7 +21,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ persona, onClose }) => {
     ]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    const [chatSession, setChatSession] = useState<Chat | null>(null);
+    const [chatSession, setChatSession] = useState<PersonaChat | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Initialize Chat on mount
@@ -31,7 +30,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ persona, onClose }) => {
             const chat = initializePersonaChat(persona);
             setChatSession(chat);
         } catch (e) {
-            setMessages(prev => [...prev, { sender: 'model', text: "Connection error: API Key required." }]);
+            setMessages(prev => [...prev, { sender: 'model', text: "Connection error." }]);
         }
     }, [persona]);
 
@@ -49,9 +48,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ persona, onClose }) => {
         setIsTyping(true);
 
         try {
-            const result: GenerateContentResponse = await chatSession.sendMessage({ message: userMsg });
-            if (result.text) {
-                setMessages(prev => [...prev, { sender: 'model', text: result.text as string }]);
+            const reply = await chatSession.sendMessage(userMsg);
+            if (reply) {
+                setMessages(prev => [...prev, { sender: 'model', text: reply }]);
             }
         } catch (error) {
             console.error("Chat Error:", error);

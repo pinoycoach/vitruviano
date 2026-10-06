@@ -1,7 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
-import { generateCheapImage } from './falImageService';
-
-const API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY;
+import { postJson } from './apiClient';
 
 export interface SocialPost {
   trope: string;
@@ -33,66 +30,12 @@ const TROPE_PROMPTS: Record<string, string> = {
   'The Alpha Commander': 'Military bearing, tactical gear, authoritative presence, leadership energy'
 };
 
+/** Superuser-only; text and image are generated server-side by /api/social. */
 export const generateSocialPost = async (trope: string): Promise<SocialPost> => {
-  if (!API_KEY) {
-    throw new Error('Gemini API key not found');
-  }
-
   console.log(`📱 Generating social post for: ${trope}`);
-
-  // Generate text content first (cheap!)
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-  
-  const textPrompt = `Create viral BookTok content for this romance archetype: ${trope}
-
-Return ONLY valid JSON (no markdown):
-{
-  "caption": "2-3 sentence caption that makes readers NEED this character",
-  "hashtags": "10-15 trending hashtags for BookTok romance",
-  "hookLine": "One sentence that stops scrolling",
-  "povScript": "POV script for video (40-60 words, first person, dramatic)"
-}
-
-Make it spicy, dramatic, and BookTok-optimized.`;
-
-  const textResponse = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image', // Using the stable model
-    contents: { parts: [{ text: textPrompt }] }
-  });
-
-  const textContent = textResponse.text || '';
-  const jsonMatch = textContent.match(/\{[\s\S]*\}/);
-  
-  if (!jsonMatch) {
-    throw new Error('Failed to generate text content');
-  }
-  
-  const content = JSON.parse(jsonMatch[0]);
-  const textCost = 0.0006;
-
-  // Generate image (smart fallback)
-  const imagePrompt = TROPE_PROMPTS[trope] || trope;
-  
-  // UPDATED: Explicitly requesting 9:16 Vertical
-  const visualPrompt = `Cinematic 9:16 vertical portrait. ${imagePrompt}. Romance novel cover style. Professional editorial lighting. Handsome male model. Intense romantic gaze. High fashion photography. Fit entire subject in vertical frame.`;
-  
-  const imageResult = await generateCheapImage(visualPrompt);
-
-  console.log(`✅ Post generated! Text: $${textCost}, Image: $${imageResult.cost}, Total: $${textCost + imageResult.cost}`);
-
-  return {
-    trope,
-    image: {
-      url: imageResult.url,
-      cost: imageResult.cost,
-      model: imageResult.model
-    },
-    caption: content.caption,
-    hashtags: content.hashtags,
-    hookLine: content.hookLine,
-    povScript: content.povScript,
-    totalCost: textCost + imageResult.cost
-  };
+  const post = await postJson<SocialPost>('/api/social', { trope });
+  console.log(`✅ Post generated! Total: $${post.totalCost}`);
+  return post;
 };
 
 export const generateContentBatch = async (

@@ -1,10 +1,4 @@
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  readonly VITE_FAL_KEY: string
-  readonly API_KEY: string
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv
-}
+// No secrets are exposed to the client. API keys are server-only env vars
+// (see .env.example) read by the serverless functions in /api.

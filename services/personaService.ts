@@ -1,6 +1,5 @@
-import { GoogleGenAI } from '@google/genai';
+import { postJson } from './apiClient';
 
-const API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY;
 export interface CouncilPersona {
   role: string;
   name: string;
@@ -11,62 +10,8 @@ export interface CouncilPersona {
 }
 
 export const generateCouncilPersonas = async (): Promise<CouncilPersona[]> => {
-  if (!API_KEY) {
-    throw new Error('Google API key not found');
-  }
-
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-  
-  const prompt = `Generate 3 unique council personas for critiquing male attractiveness and style.
-
-Return ONLY valid JSON (no markdown, no backticks):
-[
-  {
-    "role": "The Visionary",
-    "name": "unique inspiring name",
-    "essence": "2-3 word description",
-    "focus": "what they critique",
-    "tone": "how they speak",
-    "iconicQuote": "one memorable line"
-  },
-  {
-    "role": "The Critic", 
-    "name": "unique harsh name",
-    "essence": "2-3 word description",
-    "focus": "what they critique",
-    "tone": "how they speak",
-    "iconicQuote": "one memorable line"
-  },
-  {
-    "role": "The Realist",
-    "name": "unique pragmatic name",
-    "essence": "2-3 word description", 
-    "focus": "what they critique",
-    "tone": "how they speak",
-    "iconicQuote": "one memorable line"
-  }
-]
-
-Make them distinct, memorable, and slightly dramatic.`;
-
   try {
-    console.log('🎭 Generating dynamic personas...');
-    
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-8b',
-      contents: { parts: [{ text: prompt }] }
-    });
-    
-    const text = response.text || '';
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    
-    if (!jsonMatch) {
-      throw new Error('No valid JSON found in response');
-    }
-    
-    const personas = JSON.parse(jsonMatch[0]);
-    console.log('✅ Dynamic personas generated! Cost: $0.0006');
-    
+    const { personas } = await postJson<{ personas: CouncilPersona[] }>('/api/personas');
     return personas;
   } catch (error) {
     console.error('Persona generation failed:', error);
