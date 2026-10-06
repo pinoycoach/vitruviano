@@ -57,10 +57,3 @@ export const getEnabledFeatures = (): string[] => {
     isFeatureEnabled(key as keyof typeof FEATURES)
   );
 };
-
-if (typeof window !== 'undefined') {
-  (window as any).vitruviano = {
-    ...(window as any).vitruviano,
-    getEnabledFeatures,
-  };
-}

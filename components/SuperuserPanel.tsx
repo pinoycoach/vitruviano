@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { clearSuperuser } from '../config/superuser';
+import { clearSuperuser, isSuperuser } from '../config/superuser';
+import { getEnabledFeatures } from '../config/features';
 
 interface Props {
   onClose: () => void;
@@ -93,7 +94,7 @@ const SuperuserPanel: React.FC<Props> = ({ onClose }) => {
               
               <button 
                 onClick={() => {
-                  const features = (window as any).vitruviano?.getEnabledFeatures();
+                  const features = getEnabledFeatures();
                   console.log('Enabled Features:', features);
                   alert('You have ' + (features?.length || 0) + ' features enabled! Check console for details.');
                 }}
@@ -108,7 +109,7 @@ const SuperuserPanel: React.FC<Props> = ({ onClose }) => {
               
               <button 
                 onClick={() => {
-                  console.log('Superuser Status:', (window as any).vitruviano?.isSuperuser());
+                  console.log('Superuser Status:', isSuperuser());
                   alert('Superuser status logged to console');
                 }}
                 className="w-full bg-gray-700 hover:bg-gray-600 text-white px-6 py-4 rounded-lg text-left flex items-center gap-3"
@@ -424,9 +425,7 @@ const SuperuserPanel: React.FC<Props> = ({ onClose }) => {
               <button 
                 onClick={() => {
                   if (window.confirm('This will exit superuser mode. Continue?')) {
-                    clearSuperuser();
-                    alert('Superuser mode disabled. Refresh the page.');
-                    window.location.reload();
+                    clearSuperuser().then(() => onClose());
                   }
                 }}
                 className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-lg text-left flex items-center gap-3"

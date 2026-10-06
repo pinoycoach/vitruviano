@@ -9,9 +9,9 @@ import DramaticLoader from './components/DramaticLoader';
 import { BoyfriendProfile, TropeType, DirectorInput, UserWallet } from './types';
 import { generateBoyfriendProfile, generateFantasyImage, generateDirectorProfile, generateCoreProfile, enrichBoyfriendProfile, generateManifestProfile } from './services/geminiService';
 // NEW: Superuser imports
-import { isSuperuser } from './config/superuser';
-import { isFeatureEnabled } from './config/features';
+import { useSuperuser } from './config/superuser';
 import SuperuserPanel from './components/SuperuserPanel';
+import SuperuserLogin from './components/SuperuserLogin';
 const App: React.FC = () => {
   const [view, setView] = useState<'menu' | 'casting' | 'director' | 'manifestor' | 'fantasy'>('menu');
   const [profile, setProfile] = useState<BoyfriendProfile | null>(null);
@@ -19,27 +19,21 @@ const App: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingContext, setLoadingContext] = useState<{ trope: string, vibe: string } | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
-// NEW: Superuser state
-  const [isSU, setIsSU] = useState(false);
+// Superuser state (verified server-side, see config/superuser.ts)
+  const isSU = useSuperuser();
   const [showPanel, setShowPanel] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   useEffect(() => {
-    // Check if superuser
-    setIsSU(isSuperuser());
-    
-    if (isSuperuser()) {
-      console.log('🔐 Superuser mode active! Press Ctrl+Shift+S to open panel');
-      
-      // Keyboard shortcut
-      const handleKey = (e: KeyboardEvent) => {
-        if (e.ctrlKey && e.shiftKey && e.key === 'S') {
-          setShowPanel(prev => !prev);
-        }
-      };
-      
-      window.addEventListener('keydown', handleKey);
-      return () => window.removeEventListener('keydown', handleKey);
-    }
-  }, []);
+    // Ctrl+Shift+S: open the panel, or the login prompt if not authenticated.
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+        if (isSU) setShowPanel(prev => !prev);
+        else setShowLogin(true);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isSU]);
   const [wallet, setWallet] = useState<UserWallet>({
       coins: 100,
       streakDays: 1,
@@ -192,6 +186,9 @@ const App: React.FC = () => {
       {/* NEW: Superuser panel */}
       {isSU && showPanel && (
         <SuperuserPanel onClose={() => setShowPanel(false)} />
+      )}
+      {!isSU && showLogin && (
+        <SuperuserLogin onClose={() => setShowLogin(false)} onSuccess={() => { setShowLogin(false); setShowPanel(true); }} />
       )}
         </main>
     </div>
