@@ -36,7 +36,7 @@ export const handle = safely(async (request) => {
       if (!match) throw new HttpError(400, 'Invalid referenceImage');
       reference = { mimeType: match[1], data: match[2] };
     }
-    return json({ image: await generateImage(prompt, [MODELS.imageFallback], reference) });
+    return json({ image: await generateImage(prompt, [MODELS.imageFallback, MODELS.imagePrimary], reference) });
   }
 
   throw new HttpError(400, 'Invalid kind');
