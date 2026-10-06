@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { clearSuperuser, isSuperuser } from '../config/superuser';
 import { getEnabledFeatures } from '../config/features';
+import { generateWhisperExperience, trackWhisperEngagement } from '../services/whisperBackService';
 
 interface Props {
   onClose: () => void;
@@ -10,7 +11,7 @@ const SuperuserPanel: React.FC<Props> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'info' | 'tools'>('info');
   
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-xs z-50 flex items-center justify-center p-4">
       <div className="bg-gray-900 rounded-xl border-2 border-purple-500 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         
         <div className="bg-purple-600 p-4 flex justify-between items-center">
@@ -23,7 +24,7 @@ const SuperuserPanel: React.FC<Props> = ({ onClose }) => {
           </div>
           <button 
             onClick={onClose}
-            className="text-white hover:bg-purple-700 px-4 py-2 rounded text-xl font-bold"
+            className="text-white hover:bg-purple-700 px-4 py-2 rounded-sm text-xl font-bold"
           >
             ✕
           </button>
@@ -52,7 +53,7 @@ const SuperuserPanel: React.FC<Props> = ({ onClose }) => {
           </button>
         </div>
         
-        <div className="p-6 overflow-y-auto flex-grow">
+        <div className="p-6 overflow-y-auto grow">
           
           {activeTab === 'info' && (
             <div className="space-y-4">
@@ -267,7 +268,6 @@ const SuperuserPanel: React.FC<Props> = ({ onClose }) => {
               <button 
                 onClick={async () => {
                   try {
-                    const { generateWhisperExperience, trackWhisperEngagement } = await import('../services/whisperBackService');
                     
                     alert('Generating intimate whisper experience...\n\nThis includes:\n- Personalized script (Gemini $0.0006)\n- Voice generation (ElevenLabs ~$0.01)\n\nTotal: ~$0.0106\n\nWill take 10-15 seconds.');
                     

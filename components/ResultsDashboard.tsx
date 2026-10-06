@@ -222,7 +222,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                             />
                             {/* MONETIZATION TEASE: LOCKED GALLERY */}
                             <div className="absolute top-4 right-4 flex space-x-2 z-20">
-                                <div className="w-10 h-14 bg-black/60 backdrop-blur border border-white/20 flex items-center justify-center cursor-not-allowed group/lock hover:bg-davinci-red transition-colors shadow-lg" title="Unlock Raw Mode">
+                                <div className="w-10 h-14 bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center cursor-not-allowed group/lock hover:bg-davinci-red transition-colors shadow-lg" title="Unlock Raw Mode">
                                     <span className="text-lg grayscale group-hover/lock:grayscale-0">🔒</span>
                                 </div>
                             </div>
@@ -250,12 +250,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
              {/* THE SHOPPING LIST (COMMERCE PIVOT) - ENHANCED UI */}
              {insight?.shoppingList && (
-                <div className="bg-white border border-gray-200 p-4 shadow-sm relative overflow-hidden">
+                <div className="bg-white border border-gray-200 p-4 shadow-xs relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-davinci-gold/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
                     <h3 className="text-[10px] font-bold uppercase tracking-widest mb-3 text-gray-400 relative z-10">Shop This Aesthetic</h3>
                     <div className="space-y-3 relative z-10">
                         {insight.shoppingList.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center group cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors border border-transparent hover:border-gray-100">
+                            <div key={idx} className="flex justify-between items-center group cursor-pointer hover:bg-gray-50 p-2 rounded-sm transition-colors border border-transparent hover:border-gray-100">
                                 <div>
                                     <div className="font-serif text-lg leading-none group-hover:text-davinci-red transition-colors">{item.brand}</div>
                                     <div className="text-xs text-gray-500">{item.item}</div>
@@ -308,7 +308,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                         
                         {/* 2026 PIVOT: ROMANCE NOVEL HOOK */}
                         {insight?.romanceHook && (
-                             <div className="mt-4 p-4 bg-davinci-paper/50 border border-davinci-gold/20 rounded-sm">
+                             <div className="mt-4 p-4 bg-davinci-paper/50 border border-davinci-gold/20 rounded-xs">
                                  <div className="flex justify-between items-center mb-1">
                                     <p className="font-mono text-[10px] text-davinci-red uppercase tracking-widest">Generated Audio Hook (Mills & Boon Protocol)</p>
                                     <p className="font-mono text-[9px] text-gray-500 uppercase">{getVoicePersonality(analysis.archetype)}</p>
@@ -364,7 +364,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 &
                              </div>
                              <div className="relative z-10 flex flex-col md:flex-row gap-6">
-                                 <div className="flex-grow">
+                                 <div className="grow">
                                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-davinci-gold mb-1">
                                         Literary Archetype Match
                                      </h3>

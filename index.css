@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* Black / gold da Vinci theme (migrated from the former CDN tailwind.config in index.html). */
+@theme {
+  --color-davinci-paper: #F0EAD6;
+  --color-davinci-ink: #1a1a1a;
+  --color-davinci-gold: #D4AF37;
+  --color-davinci-red: #8B0000;
+
+  --font-serif: 'Cormorant Garamond', serif;
+  --font-handwriting: 'Allura', cursive;
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  --animate-slow-fade: fadeIn 3s ease-out forwards;
+  --animate-pulse-subtle: pulseSubtle 4s ease-in-out infinite;
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes pulseSubtle {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+  }
+}
+
+/* Tailwind v4 compatibility: keep v3 defaults the UI was designed against. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+body {
+  background-color: #000;
+  cursor: default;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+}
+
+.cinematic-shadow {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}

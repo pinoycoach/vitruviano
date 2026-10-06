@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 /**
  * Dev-only: serve the Vercel-style functions in /api under `npm run dev`
@@ -45,7 +46,7 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     host: '0.0.0.0',
   },
-  plugins: [react(), apiDevServer(mode)],
+  plugins: [react(), tailwindcss(), apiDevServer(mode)],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),

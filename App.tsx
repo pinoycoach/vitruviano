@@ -139,7 +139,7 @@ const App: React.FC = () => {
                         <p className="text-davinci-gold font-light tracking-[0.3em] uppercase text-xs">What if we could show you yours?</p>
                     </div>
                     
-                    <div className="flex flex-col md:flex-row gap-12 mt-12">
+                    <div className="flex flex-col md:flex-row gap-12">
                         <button onClick={() => setView('manifestor')} className="group text-center">
                             <div className="text-xs tracking-[0.4em] uppercase opacity-40 group-hover:opacity-100 transition-opacity mb-2">The Invocation</div>
                             <div className="text-2xl font-light italic group-hover:text-davinci-gold transition-colors">Manifest Him</div>

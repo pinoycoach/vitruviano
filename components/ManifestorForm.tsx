@@ -28,7 +28,7 @@ const ManifestorForm: React.FC<ManifestorFormProps> = ({ onSubmit, isLoading }) 
             onChange={(e) => setText(e.target.value)}
             placeholder="Tell us about him... describe his eyes, the way he looks at you, the secrets he keeps."
             required
-            className="w-full h-64 bg-transparent border-b border-davinci-gold/20 py-4 text-2xl font-extralight italic text-white placeholder:opacity-20 focus:border-davinci-gold outline-none transition-all resize-none leading-relaxed"
+            className="w-full h-64 bg-transparent border-b border-davinci-gold/20 py-4 text-2xl font-extralight italic text-white placeholder:opacity-20 focus:border-davinci-gold outline-hidden transition-all resize-none leading-relaxed"
           />
           <div className="absolute bottom-4 right-0 text-[10px] tracking-[0.2em] opacity-40 uppercase">
               He's listening.

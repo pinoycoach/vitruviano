@@ -33,7 +33,7 @@ const SuperuserLogin: React.FC<Props> = ({ onClose, onSuccess }) => {
           autoComplete="off"
           value={secret}
           onChange={(e) => setSecret(e.target.value)}
-          className="w-full bg-black text-white border border-gray-600 rounded px-3 py-2"
+          className="w-full bg-black text-white border border-gray-600 rounded-sm px-3 py-2"
           placeholder="Secret"
         />
         {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -41,7 +41,7 @@ const SuperuserLogin: React.FC<Props> = ({ onClose, onSuccess }) => {
           <button type="button" onClick={onClose} className="text-gray-300 px-4 py-2">
             Cancel
           </button>
-          <button type="submit" disabled={busy} className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50">
+          <button type="submit" disabled={busy} className="bg-purple-600 text-white px-4 py-2 rounded-sm disabled:opacity-50">
             {busy ? 'Checking…' : 'Enter'}
           </button>
         </div>

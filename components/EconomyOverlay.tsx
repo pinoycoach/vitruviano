@@ -26,7 +26,7 @@ const EconomyOverlay: React.FC<EconomyOverlayProps> = ({ wallet, onClaimDaily, o
     <>
       {/* Wallet is now a subtle pulse at the edge, only shows value on hover */}
       <div className="fixed top-8 right-8 z-[100] group pointer-events-auto">
-        <div className="flex items-center gap-4 bg-black/40 backdrop-blur border border-white/5 px-4 py-2 rounded-full opacity-30 hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-4 bg-black/40 backdrop-blur-sm border border-white/5 px-4 py-2 rounded-full opacity-30 hover:opacity-100 transition-opacity">
             <span className="text-[10px] tracking-widest uppercase text-davinci-gold">Tribute</span>
             <span className="font-light text-white text-sm">{wallet.coins}</span>
         </div>

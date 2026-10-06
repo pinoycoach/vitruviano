@@ -65,8 +65,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ persona, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="w-full max-w-md bg-davinci-ink text-davinci-paper border border-davinci-gold shadow-2xl rounded-sm overflow-hidden flex flex-col h-[600px] relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-fade-in">
+            <div className="w-full max-w-md bg-davinci-ink text-davinci-paper border border-davinci-gold shadow-2xl rounded-xs overflow-hidden flex flex-col h-[600px] relative">
                 
                 {/* Header */}
                 <div className="p-4 border-b border-davinci-gold/30 flex justify-between items-center bg-black/20">
@@ -81,7 +81,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ persona, onClose }) => {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-grow overflow-y-auto p-4 space-y-4 custom-scrollbar bg-gradient-to-b from-black/50 to-transparent">
+                <div className="grow overflow-y-auto p-4 space-y-4 custom-scrollbar bg-gradient-to-b from-black/50 to-transparent">
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[80%] p-3 text-sm font-serif ${
@@ -114,7 +114,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ persona, onClose }) => {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Type a message..." 
-                            className="flex-grow bg-white/5 border border-davinci-gold/30 p-3 text-sm text-white focus:border-davinci-gold outline-none rounded-sm font-serif placeholder:italic placeholder:opacity-30"
+                            className="grow bg-white/5 border border-davinci-gold/30 p-3 text-sm text-white focus:border-davinci-gold outline-hidden rounded-xs font-serif placeholder:italic placeholder:opacity-30"
                             autoFocus
                         />
                         <button 

@@ -22,7 +22,7 @@ const AnatomyAudit: React.FC<AuditProps> = ({ imageUrl, proportions }) => {
     Math.abs(apeVal - 1.0) < 0.05;
 
   return (
-    <div className="relative w-full max-w-[500px] mx-auto border-2 border-davinci-gold rounded-sm overflow-hidden bg-davinci-ink shadow-2xl group cursor-crosshair">
+    <div className="relative w-full max-w-[500px] mx-auto border-2 border-davinci-gold rounded-xs overflow-hidden bg-davinci-ink shadow-2xl group cursor-crosshair">
       {/* 1. THE GENERATED MODEL */}
       <img 
         src={imageUrl} 
@@ -59,7 +59,7 @@ const AnatomyAudit: React.FC<AuditProps> = ({ imageUrl, proportions }) => {
       </svg>
 
       {/* 3. THE HUD (Heads-Up Display) */}
-      <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-md p-3 rounded border border-davinci-gold/50 text-[10px] font-mono text-davinci-gold shadow-lg transform transition-transform duration-300 hover:scale-105">
+      <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-md p-3 rounded-sm border border-davinci-gold/50 text-[10px] font-mono text-davinci-gold shadow-lg transform transition-transform duration-300 hover:scale-105">
         <div className="flex items-center justify-between border-b border-davinci-gold/30 pb-1 mb-2 space-x-4">
             <span className="font-bold tracking-widest">NEXUS AUDIT</span>
             <div className={`w-2 h-2 rounded-full ${isPerfect ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" : "bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]"}`}></div>

@@ -21,7 +21,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-black border border-davinci-gold/30 p-8 rounded-sm shadow-2xl relative overflow-hidden animate-fade-in">
+    <div className="w-full max-w-2xl mx-auto bg-black border border-davinci-gold/30 p-8 rounded-xs shadow-2xl relative overflow-hidden animate-fade-in">
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 p-4 opacity-20 text-davinci-gold text-4xl font-serif">DIRECTOR MODE</div>
       
@@ -42,7 +42,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="e.g. Killian"
                     required
-                    className="w-full bg-white/5 border border-white/20 p-3 text-white font-serif placeholder:opacity-30 focus:border-davinci-gold outline-none transition-colors"
+                    className="w-full bg-white/5 border border-white/20 p-3 text-white font-serif placeholder:opacity-30 focus:border-davinci-gold outline-hidden transition-colors"
                 />
             </div>
              <div>
@@ -50,7 +50,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
                 <select 
                     value={formData.vibe}
                     onChange={(e) => setFormData({...formData, vibe: e.target.value})}
-                    className="w-full bg-white/5 border border-white/20 p-3 text-white font-sans text-sm focus:border-davinci-gold outline-none"
+                    className="w-full bg-white/5 border border-white/20 p-3 text-white font-sans text-sm focus:border-davinci-gold outline-hidden"
                 >
                     <option>Dark & Possessive</option>
                     <option>Soft & Devoted</option>
