@@ -142,7 +142,7 @@ export const connectLiveCall = async (profile: BoyfriendProfile, onMessage: (msg
                     const l = inputData.length;
                     const int16 = new Int16Array(l);
                     for (let i = 0; i < l; i++) { int16[i] = inputData[i] * 32768; }
-                    sessionPromise.then(s => s.sendRealtimeInput({ media: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } }));
+                    sessionPromise.then(s => s.sendRealtimeInput({ audio: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } }));
                 };
                 source.connect(scriptProcessor);
                 scriptProcessor.connect(inCtx.destination);
