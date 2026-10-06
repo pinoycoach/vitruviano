@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss(), apiDevServer(mode)],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '.'),
+      '@': path.resolve(import.meta.dirname, '.'),
     },
   },
 }));

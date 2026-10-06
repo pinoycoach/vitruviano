@@ -34,7 +34,7 @@ export const calculateRatios = (data: BodyMeasurements): RatioAnalysis => {
   let score = 100 - (weightedError * 200);
   score = Math.max(0, Math.min(100, score));
 
-  let archetype = Archetype.UNDEFINED;
+  let archetype: Archetype;
 
   if (score > 90) {
     archetype = Archetype.VITRUVIAN_IDEAL;
